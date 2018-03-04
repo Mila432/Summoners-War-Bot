@@ -514,6 +514,7 @@ class API(object):
 			hasVic=True
 			refresh=0
 			repeat=0
+			limit=0
 			while(hasVic):
 				if repeat>=4:
 					break
