@@ -343,6 +343,10 @@ class API(object):
 		data=OrderedDict([('command','SacrificeUnit'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('target_id',target_id),('island_id','1'),('building_id','0'),('pos_x','8'),('pos_y','14'),('source_list',source_list)])
 		return self.callAPI(self.c2_api,data)
 
+	def UpgradeUnit(self,target_id,source_list):
+		data=OrderedDict([('command','UpgradeUnit'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('target_id',target_id),('island_id','1'),('building_id','0'),('pos_x','10'),('pos_y','19'),('source_list',source_list)])
+		return self.callAPI(self.c2_api,data)
+
 	def ReceiveMail(self,mail_id_list):
 		data=OrderedDict([('command','ReceiveMail'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('mail_id_list',mail_id_list),('island_id','1'),('pos_x','19'),('pos_y','27')])
 		return self.callAPI(self.c2_api,data)
