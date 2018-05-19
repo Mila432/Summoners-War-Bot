@@ -7,11 +7,12 @@ import binascii
 import hashlib
 import io
 import json
+import os
 import random
 import requests
 import socket
-import time
 import sys
+import time
 import zlib
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -59,7 +60,7 @@ class Activeuser(object):
 
 class QPYOU(object):
 	def __init__(self,did=None):
-		self.s=requests.session()
+		self.s=requests.Session()
 		self.s.verify=False
 		if 'Admin-PC' == socket.gethostname():
 			self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'https://127.0.0.1:8888',})
@@ -95,14 +96,23 @@ class QPYOU(object):
 		if 'thorization Faile' in res.content:
 			return None
 		return json.loads(res.content)
-		
+
 	def hiveLogin(self,user,password):
-		self.s.cookies.update({'advertising_id':Tools().rndDeviceId(),'appid':'com.com2us.smon.normal.freefull.apple.kr.ios.universal','device':'iPad5,4','did':str(random.randint(200000000,300000000)) if not self.did else str(self.did),'native_version':'Hub v.2.6.4','osversion':'10.2','platform':'ios','vendor_id':Tools().rndDeviceId()})
+		self.s.cookies.update({'hive_config_language':'en_US','hive_config_nationality':'CH','inquiry_language':'en_US','advertising_id':'00000000-0000-0000-0000-000000000000','appid':'com.com2us.smon.normal.freefull.apple.kr.ios.universal','device':'iPad5,4','did':str(random.randint(200000000,300000000)) if not self.did else str(self.did),'native_version':'Hub v.2.6.5','osversion':'10.2','platform':'ios','vendor_id':Tools().rndDeviceId(),'gameindex':'2623','hive_source':'C'})
 		self.registered()
-		self.s.post('https://hub.qpyou.cn/auth',data='{"language":"en","timezone":null,"game_language":"en","server_id":"","device_country":"RU","hive_country":"DE"}',allow_redirects=False)
-		data={'id':user,'password':'','dkagh':self.MD5(password)}
-		self.s.get('https://hub.qpyou.cn/auth/recent_account')
+		r1=self.s.post('https://hub.qpyou.cn/auth',data='{"language":"en","timezone":null,"game_language":"en","server_id":"","device_country":"RU","hive_country":"CH"}',allow_redirects=False)
+		data='id={}&password=&dkagh={}'.format(user,self.MD5(password))
+		self.s.get('https://hub.qpyou.cn/auth/recent_account',cookies=r1.cookies)
 		rr= self.s.post('https://hub.qpyou.cn/auth/login_proc',data=data,headers={'Content-Type':'application/x-www-form-urlencoded','Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','User-Agent':'Mozilla/5.0 (iPhone; CPU iPhone OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Version/10.0 Mobile/14C92 Safari/602.1','Referer':'http://hub.qpyou.cn/auth/login'},allow_redirects=False)
+		if '/otp/' in rr.headers['Location']:
+			print 'detected otp..'
+			self.s.get('https://hub.qpyou.cn/otp/main',headers={'Origin':'https://hub.qpyou.cn','Accept':'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8','User-Agent':'Mozilla/5.0 (iPad; CPU OS 10_2 like Mac OS X) AppleWebKit/602.3.12 (KHTML, like Gecko) Mobile/14C92','Accept-Language':'en-gb','Referer':'https://hub.qpyou.cn/auth/recent_account'})
+			_udata=raw_input('Open this: /otp/aes.html?mail=MYMAIL@MY.COM&code=123456 and paste the console log here')
+			if 'ct' not in _udata and 'iv' not in _udata and '"s"' not in _udata and '"d"' not in _udata:
+				print 'bad data'
+				exit(1)
+			self.s.post('https://hub.qpyou.cn/otp/verification',data=_udata)
+			rr=self.s.get('https://hub.qpyou.cn/otp/login')
 		sss= rr.headers['Location'].split('&')
 		sessionkey=sss[3].replace('sessionkey=','')
 		_did=sss[2].replace('did=','')

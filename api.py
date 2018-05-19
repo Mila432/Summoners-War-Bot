@@ -20,12 +20,12 @@ class API(object):
 		self.crypter=Crypter()
 		self.s=requests.session()
 		self.s.verify=False
-		self.s.headers.update({'User-Agent':'Summoners%20War/3.8.5.38500 CFNetwork/808.2.16 Darwin/16.3.0'})
+		self.s.headers.update({'User-Agent':'Summoners%20War/3.8.6.38601 CFNetwork/808.2.16 Darwin/16.3.0'})
 		#if 'Admin-PC' == socket.gethostname():
 		#	self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'https://127.0.0.1:8888',})
 		self.game_index=2623
-		self.proto_ver=11120
-		self.app_version='3.8.5'
+		self.proto_ver=11130
+		self.app_version='3.8.6'
 		self.c2_api='http://summonerswar-%s.qpyou.cn/api/gateway_c2.php'
 		self.uid=int(uid)
 		self.did=int(did)
@@ -285,7 +285,7 @@ class API(object):
 		return self.callAPI(self.c2_api,data)
 
 	def BattleScenarioResult(self,battle_key,opp_unit_status_list,unit_id_list,position):
-		data=OrderedDict([('command','BattleScenarioResult'),('wizard_id',self.wizard_id),('session_key',str(self.getUID())),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('win_lose',1),('opp_unit_status_list',opp_unit_status_list),('unit_id_list',unit_id_list),('position',position),('clear_time',31086),('retry',0)])
+		data=OrderedDict([('command','BattleScenarioResult'),('wizard_id',self.wizard_id),('session_key',str(self.getUID())),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('win_lose',1),('opp_unit_status_list',opp_unit_status_list),('unit_id_list',unit_id_list),('position',position),('clear_time',45587),('retry',0)])
 		return self.callAPI(self.c2_api,data)
 
 	def BattleArenaResult(self,battle_key,opp_unit_status_list,unit_id_list):
