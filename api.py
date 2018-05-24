@@ -22,7 +22,7 @@ class API(object):
 		self.s.verify=False
 		self.s.headers.update({'User-Agent':'Summoners%20War/3.8.6.38601 CFNetwork/808.2.16 Darwin/16.3.0'})
 		#if 'Admin-PC' == socket.gethostname():
-		self.s.proxies.update({'http': 'http://192.168.1.78:8080','https': 'https://192.168.1.78:8080',})``
+		# self.s.proxies.update({'http': 'http://192.168.1.78:8080','https': 'https://192.168.1.78:8080',})
 		self.game_index=2623
 		self.proto_ver=11130
 		self.app_version='3.8.6'
