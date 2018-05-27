@@ -293,7 +293,7 @@ class API(object):
 		return self.callAPI(self.c2_api,data)
 
 	def BattleDungeonResult(self,battle_key,dungeon_id,stage_id,unit_id_list,opp_unit_status_list):
-		data=OrderedDict([('command','BattleDungeonResult'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('dungeon_id',dungeon_id),('stage_id',stage_id),('win_lose',1),('unit_id_list',unit_id_list),('opp_unit_status_list',opp_unit_status_list),('retry',0)])
+		data=OrderedDict([('command','BattleDungeonResult'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('dungeon_id',dungeon_id),('stage_id',stage_id),('win_lose',1),('unit_id_list',unit_id_list),('opp_unit_status_list',opp_unit_status_list),('clear_time',360567),('retry',0)])
 		return self.callAPI(self.c2_api,data)
 
 	def BattleTrialTowerResult_v2(self,battle_key,difficulty,floor_id,unit_id_list,opp_unit_status_list):
@@ -589,6 +589,19 @@ class API(object):
 		for unit in self.user['defense_unit_list']:
 			if len(unit_id_list)<5:
 				unit_id_list.append({'unit_id':unit['unit_id']})
+		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=8:
+			self.BuyShopItem('100001',0,0,0)
+		battle_start=self.BattleDungeonStart(dungeon_id,stage_id,unit_id_list)
+		if not battle_start:
+			self.log('dont have battle data')
+			return
+		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start,2)
+		battle_end=self.BattleDungeonResult(battle_key,dungeon_id,stage_id,unit_id_list,opp_unit_status_list)
+		if battle_end:
+			self.parseBattleResult(battle_end,'%s:%s'%(dungeon_id,stage_id))
+		return battle_end
+
+	def doDungeonWithUnits(self,dungeon_id,stage_id,unit_id_list):
 		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=8:
 			self.BuyShopItem('100001',0,0,0)
 		battle_start=self.BattleDungeonStart(dungeon_id,stage_id,unit_id_list)
