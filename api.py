@@ -22,7 +22,7 @@ class API(object):
 		self.s.verify=False
 		self.s.headers.update({'User-Agent':'Summoners%20War/3.8.6.38601 CFNetwork/808.2.16 Darwin/16.3.0'})
 		#if 'Admin-PC' == socket.gethostname():
-		#	self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'https://127.0.0.1:8888',})
+		# self.s.proxies.update({'http': 'http://192.168.1.78:8080','https': 'https://192.168.1.78:8080',})
 		self.game_index=2623
 		self.proto_ver=11140
 		self.app_version='3.8.7'
@@ -296,7 +296,7 @@ class API(object):
 		return self.callAPI(self.c2_api,data)
 
 	def BattleDungeonResult(self,battle_key,dungeon_id,stage_id,unit_id_list,opp_unit_status_list):
-		data=OrderedDict([('command','BattleDungeonResult'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('dungeon_id',dungeon_id),('stage_id',stage_id),('win_lose',1),('unit_id_list',unit_id_list),('opp_unit_status_list',opp_unit_status_list),('retry',0)])
+		data=OrderedDict([('command','BattleDungeonResult'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('dungeon_id',dungeon_id),('stage_id',stage_id),('win_lose',1),('unit_id_list',unit_id_list),('opp_unit_status_list',opp_unit_status_list),('clear_time',360567),('retry',0)])
 		return self.callAPI(self.c2_api,data)
 
 	def BattleTrialTowerResult_v2(self,battle_key,difficulty,floor_id,unit_id_list,opp_unit_status_list):
@@ -322,6 +322,10 @@ class API(object):
 		data=OrderedDict([('command','SummonUnit'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('building_id',building_id),('mode',mode),('pos_arr',pos_arr)])
 		return self.callAPI(self.c2_api,data)
 
+	def SellRune(self, rune_id_list):
+		data=OrderedDict([('command','SellRune'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('rune_id_list',rune_id_list)])
+		return self.callAPI(self.c2_api,data)
+
 	def EquipRune(self,rune_id,unit_id):
 		data=OrderedDict([('command','EquipRune'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('rune_id',rune_id),('unit_id',unit_id)])
 		return self.callAPI(self.c2_api,data)
@@ -344,6 +348,10 @@ class API(object):
 
 	def SacrificeUnit(self,target_id,source_list):
 		data=OrderedDict([('command','SacrificeUnit'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('target_id',target_id),('island_id','1'),('building_id','0'),('pos_x','8'),('pos_y','14'),('source_list',source_list)])
+		return self.callAPI(self.c2_api,data)
+
+	def UpgradeUnit(self,target_id,source_list):
+		data=OrderedDict([('command','UpgradeUnit'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('target_id',target_id),('island_id','1'),('building_id','0'),('pos_x','10'),('pos_y','19'),('source_list',source_list)])
 		return self.callAPI(self.c2_api,data)
 
 	def ReceiveMail(self,mail_id_list):
@@ -374,10 +382,10 @@ class API(object):
 	
 	def getUserInfo(self):
 		#return 'id:%s username:%s energy:%s mana:%s crystal:%s level:%s'%(self.user['wizard_info']['wizard_id'],self.user['wizard_info']['wizard_name'],self.user['wizard_info']['wizard_energy'],self.user['wizard_info']['wizard_mana'],self.user['wizard_info']['wizard_crystal'],self.user['wizard_info']['wizard_level'])
-		return 'username:%s energy:%s mana:%s crystal:%s level:%s'%(self.user['wizard_info']['wizard_name'],self.user['wizard_info']['wizard_energy'],self.user['wizard_info']['wizard_mana'],self.user['wizard_info']['wizard_crystal'],self.user['wizard_info']['wizard_level'])
+		return 'username:%s energy:%s arena:%s mana:%s crystal:%s level:%s'%(self.user['wizard_info']['wizard_name'],self.user['wizard_info']['wizard_energy'],self.user['wizard_info']['arena_energy'],self.user['wizard_info']['wizard_mana'],self.user['wizard_info']['wizard_crystal'],self.user['wizard_info']['wizard_level'])
 		
 	def GuestLogin(self):
-		data=OrderedDict([('command','GuestLogin'),('game_index',self.game_index),('proto_ver',self.proto_ver),('app_version',self.app_version),('infocsv',self.infocsv),('uid',self.uid),('channel_uid',self.uid),('did',self.did),('push',1),('is_emulator',0),('country','DE'),('lang','eng'),('lang_game',1),('mac_address','02:00:00:00:00:00'),('device_name','iPhone10,6'),('os_version','11.1'),('token','0000000000000000000000000000000000000000000000000000000000000000'),('idfv',self.idfa),('adid','00000000-0000-0000-0000-000000000000'),('binary_size',0),('binary_check',''),('create_if_not_exist',1)])
+		data=OrderedDict([('command','GuestLogin'),('game_index',self.game_index),('proto_ver',self.proto_ver),('app_version',self.app_version),('infocsv',self.infocsv),('uid',self.uid),('channel_uid',self.uid),('did',self.did),('push',0),('is_emulator',1),('country','DE'),('lang','eng'),('lang_game',1),('mac_address','02:00:00:00:00:00'),('device_name','iPhone10,6'),('os_version','11.1'),('token','0000000000000000000000000000000000000000000000000000000000000000'),('idfv',self.idfa),('adid','00000000-0000-0000-0000-000000000000'),('binary_size',0),('binary_check',''),('create_if_not_exist',1)])
 		res= self.callAPI(self.c2_api,data)
 		self.setUser(res)
 		self.log(self.getUserInfo())
@@ -433,6 +441,50 @@ class API(object):
 		for idx,val in enumerate(old):
 			res.append({'unit_id':val['unit_id'],'pos_id':idx+1})
 		return res
+
+	def startFirstScenario(self, region_id, stage_no, difficulty, unit_id_list):
+		battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list)
+		if not battle_start:
+			self.log('region:%s level:%s diff:%s not started'%(region_id,stage_no,difficulty))
+			return
+		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		return battle_key, opp_unit_status_list, unit_id_list, region_id, stage_no, difficulty
+
+	def startScenario(self, region_id, stage_no, difficulty, exp=False):
+		unit_id_list=[]
+		for unit in self.user['defense_unit_list']:
+			if len(unit_id_list)<=4:
+				unit_id_list.append({'unit_id':unit['unit_id']})
+		if len(unit_id_list)==0:
+			print 'units missing'
+			exit(1)
+		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=3:
+			self.BuyShopItem('100001',0,0,0)
+		if region_id==9 and stage_no==7 and difficulty==1:
+			for m in self.getMentorRecommend()['mentor_recommend']:
+				if m['wizard_level']==50:
+					self.createMentoring(m['wizard_id'])
+					rep_unit_id=m['rep_unit_id']
+					wizard_id=m['wizard_id']
+					battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list,[{"wizard_id": wizard_id,"unit_id": rep_unit_id}])
+					break
+		else:
+			battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list)
+		if not battle_start:
+			self.log('region:%s level:%s diff:%s not started'%(region_id,stage_no,difficulty))
+			return
+		if exp:
+			battle_key,opp_unit_status_list=self.parseBattleStart(battle_start,3)
+		else:
+			battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		return battle_key, opp_unit_status_list, unit_id_list, region_id, stage_no, difficulty
+
+	def endScenario(self, startResp):
+		battle_end=self.BattleScenarioResult(startResp[0],startResp[1],self.makeUnitList(startResp[2]),{"island_id":1,"pos_x":14,"pos_y":24})
+		if battle_end:
+			self.parseBattleResult(battle_end,'%s:%s:%s'%(startResp[3],startResp[4],startResp[5]))
+		return battle_end
+
 		
 	def doMission(self,region_id,stage_no,difficulty,exp=False):
 		unit_id_list=[]
@@ -443,6 +495,56 @@ class API(object):
 			print 'units missing'
 			exit(1)
 		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=3:
+			self.BuyShopItem('100001',0,0,0)
+		if region_id==9 and stage_no==7 and difficulty==1:
+			for m in self.getMentorRecommend()['mentor_recommend']:
+				if m['wizard_level']==50:
+					self.createMentoring(m['wizard_id'])
+					rep_unit_id=m['rep_unit_id']
+					wizard_id=m['wizard_id']
+					battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list,[{"wizard_id": wizard_id,"unit_id": rep_unit_id}])
+					break
+		else:
+			battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list)
+		if not battle_start:
+			self.log('region:%s level:%s diff:%s not started'%(region_id,stage_no,difficulty))
+			return
+		if exp:
+			battle_key,opp_unit_status_list=self.parseBattleStart(battle_start,3)
+		else:
+			battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		battle_end=self.BattleScenarioResult(battle_key,opp_unit_status_list,self.makeUnitList(unit_id_list),{"island_id":1,"pos_x":14,"pos_y":24})
+		if battle_end:
+			self.parseBattleResult(battle_end,'%s:%s:%s'%(region_id,stage_no,difficulty))
+		return battle_end
+
+	def doMissionWithUnits(self,region_id,stage_no,difficulty,unit_id_list):
+		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=3:
+			self.BuyShopItem('100001',0,0,0)
+		if region_id==9 and stage_no==7 and difficulty==1:
+			for m in self.getMentorRecommend()['mentor_recommend']:
+				if m['wizard_level']==50:
+					self.createMentoring(m['wizard_id'])
+					rep_unit_id=m['rep_unit_id']
+					wizard_id=m['wizard_id']
+					battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list,[{"wizard_id": wizard_id,"unit_id": rep_unit_id}])
+					break
+		else:
+			battle_start=self.BattleScenarioStart(region_id,stage_no,difficulty,unit_id_list)
+		if not battle_start:
+			self.log('region:%s level:%s diff:%s not started'%(region_id,stage_no,difficulty))
+			return
+		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		battle_end=self.BattleScenarioResult(battle_key,opp_unit_status_list,self.makeUnitList(unit_id_list),{"island_id":1,"pos_x":14,"pos_y":24})
+		if battle_end:
+			self.parseBattleResult(battle_end,'%s:%s:%s'%(region_id,stage_no,difficulty))
+		return battle_end
+
+	def doMissionWithUnitIdList(self, unit_id_list,region_id,stage_no,difficulty,exp=False):
+		if len(unit_id_list)==0:
+			print 'units missing'
+			exit(1)
+		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<5:
 			self.BuyShopItem('100001',0,0,0)
 		if region_id==9 and stage_no==7 and difficulty==1:
 			for m in self.getMentorRecommend()['mentor_recommend']:
@@ -490,6 +592,19 @@ class API(object):
 		for unit in self.user['defense_unit_list']:
 			if len(unit_id_list)<5:
 				unit_id_list.append({'unit_id':unit['unit_id']})
+		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=8:
+			self.BuyShopItem('100001',0,0,0)
+		battle_start=self.BattleDungeonStart(dungeon_id,stage_id,unit_id_list)
+		if not battle_start:
+			self.log('dont have battle data')
+			return
+		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start,2)
+		battle_end=self.BattleDungeonResult(battle_key,dungeon_id,stage_id,unit_id_list,opp_unit_status_list)
+		if battle_end:
+			self.parseBattleResult(battle_end,'%s:%s'%(dungeon_id,stage_id))
+		return battle_end
+
+	def doDungeonWithUnits(self,dungeon_id,stage_id,unit_id_list):
 		if hasattr(self,'refillEnergy') and self.user['wizard_info']['wizard_crystal']>=30 and self.user['wizard_info']['wizard_energy']<=8:
 			self.BuyShopItem('100001',0,0,0)
 		battle_start=self.BattleDungeonStart(dungeon_id,stage_id,unit_id_list)
