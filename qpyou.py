@@ -1,4 +1,7 @@
+from base64 import b64decode,b64encode
 from Crypto.Cipher import AES
+from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
+from Crypto.PublicKey import RSA
 from hashlib import md5
 from tools import Tools,PKCS7Encoder
 import StringIO
@@ -61,14 +64,14 @@ class Activeuser(object):
 		return md5(s).hexdigest()
 
 class QPYOU(object):
-	def __init__(self,did=None):
+	def __init__(self,did=None,uid=None):
 		self.s=requests.Session()
 		self.s.verify=False
 		if 'Admin-PC' == socket.gethostname():
 			self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'https://127.0.0.1:8888',})
 		self.s.headers.update({'User-Agent':'SMON_Kr/3.7.0.37000 CFNetwork/808.2.16 Darwin/16.3.0','Accept-Language':'en-gb'})
 		self.did=did
-		self.guest_uid=None
+		self.guest_uid=uid
 		self.p1='{"language":"en","timezone":null,"game_language":"en","server_id":"","device_country":"RU","hive_country":"%s"}'
 		self.p2='{"hive_country":"RU","device_country":"RU","guest_uid":"%s","timezone":null,"language":"en","game_language":"en","server_id":""}'
 		self._crypter=Crypter()
@@ -84,8 +87,19 @@ class QPYOU(object):
 		self.hive_country=json.loads(self._crypter.decrypt_response(r.content,2))['country_code']
 		return self.hive_country
 
-	def create(self):
-		res = json.loads(self.s.post('https://api.qpyou.cn/guest/create',data=self.p1%(self.hive_country)).content)
+	def generate(self):
+		res = json.loads(self.s.post('https://api.qpyou.cn/guest/key',data=self.p1%(self.hive_country)).content)
+		public_key = res['public_key']
+		signature = res['signature']
+		
+		msg = '{"did":"'+self.did+'","appid":"com.com2us.smon.normal.freefull.google.kr.android.common","expire_time":"'+str(time.time()+300)+'","hive_country":"DE","signature":"'+signature+'"}'
+		keyPub = RSA.importKey(public_key)
+		cipher = Cipher_PKCS1_v1_5.new(keyPub)
+		cipher_text = cipher.encrypt(msg.encode())
+		emsg = b64encode(cipher_text)
+		
+		res = json.loads(self.s.post('https://api.qpyou.cn/guest/generate',data=emsg).content)
+		
 		if res['error_code']==1401:
 			print 'ip banned'
 			if socket.gethostname()=='Admin-PC':
@@ -152,6 +166,7 @@ class QPYOU(object):
 	def createNew(self):
 		self.s.cookies.update({'advertising_id':Tools().rndDeviceId(),'appid':'com.com2us.smon.normal.freefull.apple.kr.ios.universal','device':'iPad5,4','did':str(random.randint(200000000,300000000)) if not self.did else str(self.did),'native_version':'Hub v.2.6.4','osversion':'10.2','platform':'ios','vendor_id':Tools().rndDeviceId()})
 		self.registered()
-		res=self.create()
+		if self.guest_uid==None:
+			self.generate()
 		self.auth()
-		return res['guest_uid'],res['did']
+		return self.guest_uid,self.did
