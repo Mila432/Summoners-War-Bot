@@ -105,7 +105,7 @@ class QPYOU(object):
 
 	def generate(self,public_key,signature):
 		cipher = Cipher_PKCS1_v1_5.new(RSA.importKey(public_key.rstrip()))
-		emsg='{"did":"%s","appid":"%s","expire_time":"%s","hive_country":"%s","signature":"%s"}'%(self.did,self.appid,str(time.time()+300),self.hive_country,signature)'''thanks https://github.com/aceradryd for hint'''
+		emsg='{"did":"%s","appid":"%s","expire_time":"%s","hive_country":"%s","signature":"%s"}'%(self.did,self.appid,str(time.time()+300),self.hive_country,signature) #thanks https://github.com/aceradryd for hint
 		b64data=base64.b64encode(cipher.encrypt(emsg.encode()))
 		return json.loads(self.s.post('https://api.qpyou.cn/guest/generate',data=b64data).content)
 
