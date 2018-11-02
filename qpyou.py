@@ -1,4 +1,6 @@
 from Crypto.Cipher import AES
+from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
+from Crypto.PublicKey import RSA
 from hashlib import md5
 from tools import Tools,PKCS7Encoder
 import StringIO
@@ -9,12 +11,12 @@ import io
 import json
 import os
 import random
+import re
 import requests
 import socket
 import sys
 import time
 import zlib
-import re
 from crypt import Crypter
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -66,11 +68,15 @@ class QPYOU(object):
 		self.s.verify=False
 		if 'Admin-PC' == socket.gethostname():
 			self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'https://127.0.0.1:8888',})
-		self.s.headers.update({'User-Agent':'SMON_Kr/3.7.0.37000 CFNetwork/808.2.16 Darwin/16.3.0','Accept-Language':'en-gb'})
+		self.s.headers.update({'User-Agent':'Summoners%20War/4.1.2.41200 CFNetwork/808.2.16 Darwin/16.3.0','Accept-Language':'en-gb'})
 		self.did=did
 		self.guest_uid=None
-		self.p1='{"language":"en","timezone":null,"game_language":"en","server_id":"","device_country":"RU","hive_country":"%s"}'
-		self.p2='{"hive_country":"RU","device_country":"RU","guest_uid":"%s","timezone":null,"language":"en","game_language":"en","server_id":""}'
+		self.p1='{"hive_country":"%s","device_country":"RU","analytics_id":"","timezone":null,"language":"en","game_language":"en","server_id":""}'
+		self.p2='{"hive_country":"%s","device_country":"RU","analytics_id":"","guest_uid":"%s","timezone":null,"language":"en","game_language":"en","server_id":""}'
+		if True:
+			self.appid='com.com2us.smon.normal.freefull.apple.kr.ios.universal'#IOS
+		else:
+			self.appid='com.com2us.smon.normal.freefull.google.kr.android.common'#ANDROID
 		self._crypter=Crypter()
 		self.getCountry()
 		
@@ -93,10 +99,19 @@ class QPYOU(object):
 			exit(1)
 		self.guest_uid=res['guest_uid']
 		return res
-	
-	def auth(self):
-		return json.loads(self.s.post('https://api.qpyou.cn/guest/auth',data=self.p2%(self.guest_uid)).content)
-		
+
+	def key(self):
+		return json.loads(self.s.post('https://api.qpyou.cn/guest/key',data='{"hive_country":"RU","device_country":"RU","analytics_id":"","timezone":null,"language":"en","game_language":"en","server_id":""}').content)
+
+	def generate(self,public_key,signature):
+		cipher = Cipher_PKCS1_v1_5.new(RSA.importKey(public_key.rstrip()))
+		emsg='{"did":"%s","appid":"%s","expire_time":"%s","hive_country":"%s","signature":"%s"}'%(self.did,self.appid,str(time.time()+300),self.hive_country,signature)'''thanks https://github.com/aceradryd for hint'''
+		b64data=base64.b64encode(cipher.encrypt(emsg.encode()))
+		return json.loads(self.s.post('https://api.qpyou.cn/guest/generate',data=b64data).content)
+
+	def auth(self,guest_uid):
+		return json.loads(self.s.post('https://api.qpyou.cn/guest/auth',data=self.p2%(self.hive_country,guest_uid)).content)
+
 	def registered(self):
 		return json.loads(self.s.post('https://api.qpyou.cn/device/registered',data=self.p1%(self.hive_country)).content)
 		
@@ -152,6 +167,9 @@ class QPYOU(object):
 	def createNew(self):
 		self.s.cookies.update({'advertising_id':Tools().rndDeviceId(),'appid':'com.com2us.smon.normal.freefull.apple.kr.ios.universal','device':'iPad5,4','did':str(random.randint(200000000,300000000)) if not self.did else str(self.did),'native_version':'Hub v.2.6.4','osversion':'10.2','platform':'ios','vendor_id':Tools().rndDeviceId()})
 		self.registered()
-		res=self.create()
-		self.auth()
+		res=self.key()
+		public_key=res['public_key']
+		signature=res['signature']
+		res=self.generate(public_key,signature)
+		self.auth(res['guest_uid'])
 		return res['guest_uid'],res['did']
