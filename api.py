@@ -27,11 +27,12 @@ class API(object):
 		self.game_index=2623
 		self.proto_ver=11851
 		self.sec_ver='B1aq0bPv'
-		self.app_version='5.3.8'
+		self.app_version='6.2.3'
 		self.c2_api='http://summonerswar-%s.qpyou.cn/api/gateway_c2.php'
 		self.uid=int(uid)
 		self.did=int(did)
 		self.isHive=False
+		self.infocsv=''
 		if id and email:
 			self.log('hive account')
 			self.id=id
@@ -95,6 +96,8 @@ class API(object):
 			res= self.crypter.decrypt_response(res.content,2 if '_c2.php' in path else 1)
 			if 'wizard_info' in res and 'wizard_id' in res:
 				self.updateWizard(json.loads(res)['wizard_info'])
+			if 'session_key' in res:
+				self.session_key=json.loads(res)['session_key']
 			rj=json.loads(res)
 			if 'ret_code' in res:
 				if rj['ret_code']<>0:
@@ -136,7 +139,7 @@ class API(object):
 		if kind == 1:
 			data=OrderedDict([('command',cmd),('game_index',self.game_index),('session_key',self.getUID()),('proto_ver',self.proto_ver),('sec_ver',self.sec_ver),('infocsv',self.infocsv),('channel_uid',self.uid)])
 		elif kind ==2:
-			data=OrderedDict([('command',cmd),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.uid),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime())])
+			data=OrderedDict([('command',cmd),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime())])
 		return data
 
 	def CheckLoginBlock(self):
@@ -155,8 +158,36 @@ class API(object):
 		data=self.base_data('GetMailList',2)
 		return self.callAPI(self.c2_api,data)
 
+	def GetRtpvpQuests(self):
+		data=self.base_data('GetRtpvpQuests',2)
+		return self.callAPI(self.c2_api,data)
+
+	def WriteClientLog(self,logdata={}):
+		data=OrderedDict([('command','WriteClientLog'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('logdata',logdata)])
+		return self.callAPI(self.c2_api,data)
+
+	def ProcessGuestTransition(self,logdata={}):
+		data=OrderedDict([('command','ProcessGuestTransition'),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('wizard_id',self.wizard_id),('uid',self.uid),('did',self.did),('game_index',self.game_index),('candidate_uid',self.uid),('use_old',0),('session_key',self.getUID())])
+		return self.callAPI(self.c2_api,data)
+
+	def CheckCandidateUid(self,logdata={}):
+		data=OrderedDict([('command','CheckCandidateUid'),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('wizard_id',self.wizard_id),('game_index',self.game_index),('uid',self.uid),('candidate_uid',self.uid),('session_key',self.getUID())])
+		return self.callAPI(self.c2_api,data)
+
+	def GetContentsUpdateNotice(self):
+		data=OrderedDict([('command','GetContentsUpdateNotice'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('app_version',self.app_version),('lang','en')])
+		return self.callAPI(self.c2_api,data)
+
 	def GetArenaLog(self):
 		data=self.base_data('GetArenaLog',2)
+		return self.callAPI(self.c2_api,data)
+
+	def getUnitStorageList(self):
+		data=self.base_data('getUnitStorageList',2)
+		return self.callAPI(self.c2_api,data)
+
+	def getUpdatedDataBeforeWebEvent(self):
+		data=self.base_data('getUpdatedDataBeforeWebEvent',2)
 		return self.callAPI(self.c2_api,data)
 
 	def ReceiveDailyRewardSpecial(self):
@@ -223,17 +254,61 @@ class API(object):
 		data=self.base_data('gettrialtowerupdateremained',2)
 		return self.callAPI(self.c2_api,data)
 
-	def SetWizardName(self,name):
-		self.log('new name:%s'%(name))
-		data=OrderedDict([('command','SetWizardName'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('wizard_name',name)])
+	def GetShopInfo(self):
+		data=self.base_data('GetShopInfo',2)
+		return self.callAPI(self.c2_api,data)
+
+	def GetDimensionHoleDungeonClearList(self):
+		data=self.base_data('GetDimensionHoleDungeonClearList',2)
+		return self.callAPI(self.c2_api,data)
+
+	def getBattleOptionList(self):
+		data=self.base_data('getBattleOptionList',2)
+		return self.callAPI(self.c2_api,data)
+
+	def receiveDailyRewardNewUser(self):
+		data=self.base_data('receiveDailyRewardNewUser',2)
+		return self.callAPI(self.c2_api,data)
+
+	def CheckCandidateUid(self,candidate_uid):
+		data=OrderedDict([('command','CheckCandidateUid'),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('wizard_id',self.wizard_id),('game_index',self.game_index),('uid',self.uid),('candidate_uid',candidate_uid),('session_key',self.getUID())])
+		return self.callAPI(self.c2_api,data)
+
+	def ProcessGuestTransition(self,candidate_uid):
+		data=OrderedDict([('command','ProcessGuestTransition'),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',candidate_uid),('wizard_id',self.wizard_id),('uid',self.uid),('did',self.did),('game_index',self.game_index),('candidate_uid',candidate_uid),('use_old',0),('session_key',self.getUID())])
+		return self.callAPI(self.c2_api,data)
+
+	def SetRecentDecks(self,deck_list=[]):
+		data=OrderedDict([('command','SetRecentDecks'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('app_version',self.app_version),('game_index',self.game_index),('deck_list',deck_list)])
+		return self.callAPI(self.c2_api,data)
+
+	def SacrificeUnit_V3(self,target_unit_id,building_id,island_id,pos_x,pos_y):
+		data=OrderedDict([('command','SacrificeUnit_V3'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('target_unit_id',target_unit_id),('island_id',island_id),('building_id',building_id),('pos_x',pos_x),('pos_y',pos_y),('source_unit_list',[]),('source_item_list',[]),('source_storage_list',[])])
+		return self.callAPI(self.c2_api,data)
+
+	def CheckUnitCollection(self,unit_master_id_list=[]):
+		data=OrderedDict([('command','CheckUnitCollection'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('unit_master_id_list',unit_master_id_list)])
+		return self.callAPI(self.c2_api,data)
+
+	def SetWizardName(self,wizard_name):
+		self.log('new name:%s'%(wizard_name))
+		data=OrderedDict([('command','SetWizardName'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('wizard_name',wizard_name)])
+		return self.callAPI(self.c2_api,data)
+
+	def WriteClientLog(self,logdata):
+		data=OrderedDict([('command','WriteClientLog'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('logdata',logdata)])
+		return self.callAPI(self.c2_api,data)
+
+	def GetContentsUpdateNotice(self,lang='en'):
+		data=OrderedDict([('command','GetContentsUpdateNotice'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('app_version',self.app_version),('lang',lang)])
 		return self.callAPI(self.c2_api,data)
 
 	def UpdateEventStatus(self,event_id):
 		data=OrderedDict([('command','UpdateEventStatus'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('event_id',event_id)])
 		return self.callAPI(self.c2_api,data)
 
-	def GetEventTimeTable(self):
-		data=OrderedDict([('command','GetEventTimeTable'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('lang','1'),('app_version',self.app_version)])
+	def GetEventTimeTable(self,lang):
+		data=OrderedDict([('command','GetEventTimeTable'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('lang',lang),('app_version',self.app_version)])
 		return self.callAPI(self.c2_api,data)
 
 	def GetArenaWizardList(self,refresh=0):
@@ -270,13 +345,14 @@ class API(object):
 		return self.callAPI(self.c2_api,data)
 
 	def getUID(self):
+		if hasattr(self,'session_key') and self.session_key is not None:	return str(self.session_key)
 		if self.isHive:
 			return str(self.session_key)
 		else:
 			return str(self.uid)
 		
-	def BattleScenarioStart(self,region_id,stage_no,difficulty,unit_id_list,mentor_helper_list=None):
-		data=OrderedDict([('command','BattleScenarioStart'),('wizard_id',self.wizard_id),('session_key',str(self.getUID())),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('region_id',region_id),('stage_no',stage_no),('difficulty',difficulty),('unit_id_list',unit_id_list),('helper_list',[]),('mentor_helper_list',[] if not mentor_helper_list else mentor_helper_list),('npc_friend_helper_list',[]),('retry',0)])
+	def BattleScenarioStart(self,region_id,stage_no,difficulty,unit_id_list):
+		data=OrderedDict([('command','BattleScenarioStart'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('region_id',region_id),('stage_no',stage_no),('difficulty',difficulty),('unit_id_list',unit_id_list),('helper_list',[]),('mentor_helper_list',[]),('npc_friend_helper_list',[]),('retry',0),('auto_repeat',0)])
 		return self.callAPI(self.c2_api,data)
 
 	def BattleArenaStart(self,opp_wizard_id,unit_id_list):
@@ -292,7 +368,7 @@ class API(object):
 		return self.callAPI(self.c2_api,data)
 
 	def BattleScenarioResult(self,battle_key,opp_unit_status_list,unit_id_list,position):
-		data=OrderedDict([('command','BattleScenarioResult'),('wizard_id',self.wizard_id),('session_key',str(self.getUID())),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('win_lose',1),('opp_unit_status_list',opp_unit_status_list),('unit_id_list',unit_id_list),('position',position),('clear_time',45587),('retry',0)])
+		data=OrderedDict([('command','BattleScenarioResult'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('battle_key',battle_key),('win_lose',1),('opp_unit_status_list',opp_unit_status_list),('unit_id_list',unit_id_list),('position',position),('clear_time',45587),('auto_clear',0),('play_speed',3),('retry',0),('auto_repeat',0)])
 		return self.callAPI(self.c2_api,data)
 
 	def BattleArenaResult(self,battle_key,opp_unit_status_list,unit_id_list):
@@ -381,7 +457,7 @@ class API(object):
 		return 'username:%s energy:%s mana:%s crystal:%s level:%s'%(self.user['wizard_info']['wizard_name'],self.user['wizard_info']['wizard_energy'],self.user['wizard_info']['wizard_mana'],self.user['wizard_info']['wizard_crystal'],self.user['wizard_info']['wizard_level'])
 		
 	def GuestLogin(self):
-		data=OrderedDict([('command','GuestLogin'),('game_index',self.game_index),('proto_ver',self.proto_ver),('app_version',self.app_version),('infocsv',self.infocsv),('uid',self.uid),('channel_uid',self.uid),('did',self.did),('push',1),('is_emulator',0),('country','DE'),('lang','eng'),('lang_game',1),('mac_address','02:00:00:00:00:00'),('device_name','iPhone10,6'),('os_version','11.1'),('token','0000000000000000000000000000000000000000000000000000000000000000'),('idfv',self.idfa),('adid','00000000-0000-0000-0000-000000000000'),('binary_size',0),('binary_check',''),('create_if_not_exist',1)])
+		data=OrderedDict([('command','GuestLogin'),('game_index',self.game_index),('proto_ver',self.proto_ver),('app_version',self.app_version),('infocsv',self.infocsv),('uid',self.uid),('channel_uid',self.uid),('did',self.did),('push',1),('is_emulator',0),('is_rooting',0),('country','RU'),('lang','eng'),('lang_game',1),('mac_address','02:00:00:00:00:00'),('device_name','iPad711'),('os_version','14.4'),('token','0000000000000000000000000000000000000000000000000000000000000000'),('idfv',self.idfa),('adid','00000000-0000-0000-0000-000000000000'),('create_if_not_exist',1),('is_jailbroken',0),('ag_cert_result',0),('ag_ucid','')])
 		res= self.callAPI(self.c2_api,data)
 		self.setUser(res)
 		self.log(self.getUserInfo())
@@ -399,7 +475,7 @@ class API(object):
 		return res
 		
 	def HubUserLogin(self):
-		data=OrderedDict([('command','HubUserLogin'),('game_index',self.game_index),('proto_ver',self.proto_ver),('app_version',self.app_version),('session_key',self.session_key),('infocsv',self.infocsv),('uid',self.uid),('channel_uid',self.uid),('did',self.did),('id',self.id),('email',self.email),('push',1),('is_emulator',0),('country','RU'),('lang','eng'),('lang_game',1),('mac_address','02:00:00:00:00:00'),('device_name','iPhone10,6'),('os_version','11.1'),('token','0000000000000000000000000000000000000000000000000000000000000000'),('idfv',self.idfa),('adid','00000000-0000-0000-0000-000000000000'),('binary_size',0),('binary_check',''),('create_if_not_exist',0)])
+		data=OrderedDict([('command','HubUserLogin'),('game_index',self.game_index),('proto_ver',self.proto_ver),('app_version',self.app_version),('session_key',self.getUID()),('infocsv',self.infocsv),('uid',self.uid),('channel_uid',self.uid),('did',self.did),('id',self.id),('email',self.email),('push',1),('is_emulator',0),('is_rooting',0),('country','RU'),('lang','eng'),('lang_game',1),('mac_address','02:00:00:00:00:00'),('device_name','iPad7,11'),('os_version','14.4'),('token','0000000000000000000000000000000000000000000000000000000000000000'),('idfv','00000000-0000-0000-0000-000000000000'),('adid','00000000-0000-0000-0000-000000000000'),('create_if_not_exist',1),('is_jailbroken',0),('ag_cert_result',0),('ag_ucid','')])
 		res= self.callAPI(self.c2_api,data)
 		self.setUser(res)
 		self.log(self.getUserInfo())
@@ -558,210 +634,6 @@ class API(object):
 				done.append({"mail_id":mail['mail_id']})
 		self.ReceiveMail(done)
 
-	def level2(self):
-		self.UpdateAchievement([{'current': 7, 'ach_id': 269, 'cond_id': 1}])
-		self.ClaimAchievementReward(269)
-		self.getAllMail()
-		
-	def level3(self):
-		quest_list=self.GetDailyQuests()['quest_list']
-		for quest in quest_list:
-			if quest['completed']==1 and quest['rewarded']==0: 
-				self.RewardDailyQuest(quest['quest_id'])
-		self.UpdateAchievement([{'current': 7, 'ach_id': 263, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 450, 'ach_id': 4, 'cond_id': 1}, {'current': 2, 'ach_id': 23, 'cond_id': 1}, {'current': 9, 'ach_id': 29, 'cond_id': 1}, {'current': 1, 'ach_id': 171, 'cond_id': 1}, {'current': 1, 'ach_id': 205, 'cond_id': 1}, {'current': 1, 'ach_id': 206, 'cond_id': 1}, {'current': 1, 'ach_id': 213, 'cond_id': 1}, {'current': 1, 'ach_id': 214, 'cond_id': 1}, {'current': 1, 'ach_id': 229, 'cond_id': 1}, {'current': 1, 'ach_id': 230, 'cond_id': 1}, {'current': 1, 'ach_id': 260, 'cond_id': 1}, {'current': 1, 'ach_id': 261, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 177, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 178, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 179, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 299, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 300, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 303, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 304, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 3, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 0, 'ach_id': 171, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 2, 'ach_id': 6, 'cond_id': 2}, {'current': 1, 'ach_id': 33, 'cond_id': 2}, {'current': 5, 'ach_id': 177, 'cond_id': 1}, {'current': 5, 'ach_id': 178, 'cond_id': 1}, {'current': 5, 'ach_id': 179, 'cond_id': 1}, {'current': 7, 'ach_id': 257, 'cond_id': 1}, {'current': 5, 'ach_id': 299, 'cond_id': 1}, {'current': 5, 'ach_id': 300, 'cond_id': 1}, {'current': 5, 'ach_id': 303, 'cond_id': 1}, {'current': 5, 'ach_id': 304, 'cond_id': 1}, {'current': 5, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 2, 'ach_id': 6, 'cond_id': 3}, {'current': 7, 'ach_id': 264, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 6, 'ach_id': 177, 'cond_id': 1}, {'current': 6, 'ach_id': 178, 'cond_id': 1}, {'current': 6, 'ach_id': 179, 'cond_id': 1}, {'current': 7, 'ach_id': 265, 'cond_id': 1}, {'current': 6, 'ach_id': 299, 'cond_id': 1}, {'current': 6, 'ach_id': 300, 'cond_id': 1}, {'current': 6, 'ach_id': 303, 'cond_id': 1}, {'current': 6, 'ach_id': 304, 'cond_id': 1}, {'current': 6, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 2, 'ach_id': 6, 'cond_id': 1}, {'current': 7, 'ach_id': 177, 'cond_id': 1}, {'current': 7, 'ach_id': 178, 'cond_id': 1}, {'current': 7, 'ach_id': 179, 'cond_id': 1}, {'current': 7, 'ach_id': 266, 'cond_id': 1}, {'current': 7, 'ach_id': 299, 'cond_id': 1}, {'current': 7, 'ach_id': 300, 'cond_id': 1}, {'current': 7, 'ach_id': 303, 'cond_id': 1}, {'current': 7, 'ach_id': 304, 'cond_id': 1}, {'current': 7, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 7, 'ach_id': 267, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 8, 'ach_id': 177, 'cond_id': 1}, {'current': 8, 'ach_id': 178, 'cond_id': 1}, {'current': 8, 'ach_id': 179, 'cond_id': 1}, {'current': 7, 'ach_id': 268, 'cond_id': 1}, {'current': 8, 'ach_id': 299, 'cond_id': 1}, {'current': 8, 'ach_id': 300, 'cond_id': 1}, {'current': 8, 'ach_id': 303, 'cond_id': 1}, {'current': 8, 'ach_id': 304, 'cond_id': 1}, {'current': 8, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 7, 'ach_id': 269, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 1, 'ach_id': 33, 'cond_id': 3}, {'current': 9, 'ach_id': 177, 'cond_id': 1}, {'current': 9, 'ach_id': 178, 'cond_id': 1}, {'current': 9, 'ach_id': 179, 'cond_id': 1}, {'current': 9, 'ach_id': 299, 'cond_id': 1}, {'current': 9, 'ach_id': 300, 'cond_id': 1}, {'current': 9, 'ach_id': 303, 'cond_id': 1}, {'current': 9, 'ach_id': 304, 'cond_id': 1}, {'current': 9, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 7, 'ach_id': 270, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 7, 'ach_id': 271, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 1, 'ach_id': 5, 'cond_id': 1}, {'current': 10, 'ach_id': 29, 'cond_id': 1}, {'current': 1, 'ach_id': 192, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 10, 'ach_id': 177, 'cond_id': 1}, {'current': 10, 'ach_id': 178, 'cond_id': 1}, {'current': 10, 'ach_id': 179, 'cond_id': 1}, {'current': 7, 'ach_id': 272, 'cond_id': 1}, {'current': 10, 'ach_id': 299, 'cond_id': 1}, {'current': 10, 'ach_id': 300, 'cond_id': 1}, {'current': 10, 'ach_id': 303, 'cond_id': 1}, {'current': 10, 'ach_id': 304, 'cond_id': 1}, {'current': 10, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 7, 'ach_id': 273, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 13, 'ach_id': 177, 'cond_id': 1}, {'current': 13, 'ach_id': 178, 'cond_id': 1}, {'current': 13, 'ach_id': 179, 'cond_id': 1}, {'current': 13, 'ach_id': 299, 'cond_id': 1}, {'current': 13, 'ach_id': 300, 'cond_id': 1}, {'current': 13, 'ach_id': 303, 'cond_id': 1}, {'current': 13, 'ach_id': 304, 'cond_id': 1}, {'current': 13, 'ach_id': 305, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 2, 'ach_id': 171, 'cond_id': 1}])
-		self.UpdateAchievement([{'current': 657, 'ach_id': 4, 'cond_id': 1}])
-		self.ClaimAchievementReward(269)
-		self.ClaimAchievementReward(1)
-		self.ClaimAchievementReward(2)
-		self.ClaimAchievementReward(5)
-		self.ClaimAchievementReward(33)
-		self.ClaimAchievementReward(6)
-		self.ClaimAchievementReward(13)
-		self.ClaimAchievementReward(15)
-		self.ClaimAchievementReward(264)
-		self.ClaimAchievementReward(192)
-		self.ClaimAchievementReward(263)
-		self.ClaimAchievementReward(257)
-		self.ClaimAchievementReward(265)
-		self.ClaimAchievementReward(266)
-		self.ClaimAchievementReward(271)
-		self.ClaimAchievementReward(272)
-		self.ClaimAchievementReward(267)
-		self.ClaimAchievementReward(268)
-		self.ClaimAchievementReward(270)
-		self.ClaimAchievementReward(273)
-		self.getAllMail()
-
-	def level8(self):
-		self.UpdateEventStatus(501)
-		self.UpdateEventStatus(502)
-		self.UpdateEventStatus(503)
-		self.UpdateEventStatus(504)
-		self.UpdateEventStatus(530)
-		self.UpdateEventStatus(3)
-		self.UpdateEventStatus(505)
-		self.UpdateEventStatus(5)
-		self.UpdateEventStatus(60018)
-		self.UpdateEventStatus(80001)
-		self.UpdateEventStatus(4)
-		self.UpdateEventStatus(10001)
-		self.UpdateEventStatus(506)
-		self.UpdateEventStatus(507)
-		self.UpdateEventStatus(508)
-		self.UpdateEventStatus(509)
-		self.UpdateEventStatus(510)
-		self.UpdateEventStatus(531)
-		self.UpdateEventStatus(6)
-		self.UpdateEventStatus(511)
-		self.UpdateEventStatus(60005)
-		self.UpdateEventStatus(17)
-		self.UpdateEventStatus(541)
-		self.UpdateEventStatus(540)
-		self.UpdateEventStatus(542)
-		self.UpdateEventStatus(543)
-		self.UpdateEventStatus(544)
-		self.UpdateEventStatus(545)
-		self.UpdateEventStatus(18)
-		self.UpdateEventStatus(546)
-		self.UpdateEventStatus(8)
-		self.UpdateEventStatus(20001)
-		self.UpdateEventStatus(50029)
-		self.UpdateEventStatus(512)
-		self.UpdateEventStatus(513)
-		self.UpdateEventStatus(514)
-		self.UpdateEventStatus(515)
-		self.UpdateEventStatus(516)
-		self.UpdateEventStatus(532)
-		self.UpdateEventStatus(9)
-		self.UpdateEventStatus(517)
-		self.UpdateEventStatus(10)
-		self.UpdateEventStatus(1008)
-		self.UpdateEventStatus(518)
-		self.UpdateEventStatus(519)
-		self.UpdateEventStatus(520)
-		self.UpdateEventStatus(521)
-		self.UpdateEventStatus(522)
-		self.UpdateEventStatus(533)
-		self.UpdateEventStatus(523)
-		self.UpdateEventStatus(12)
-		self.UpdateEventStatus(547)
-		self.UpdateEventStatus(548)
-		self.UpdateEventStatus(549)
-		self.UpdateEventStatus(550)
-		self.UpdateEventStatus(551)
-		self.UpdateEventStatus(552)
-		self.UpdateEventStatus(20)
-		self.UpdateEventStatus(553)
-		self.UpdateEventStatus(13)
-		self.UpdateEventStatus(19)
-		self.UpdateEventStatus(21)
-		self.UpdateEventStatus(14)
-		self.UpdateEventStatus(1010)
-		self.UpdateEventStatus(524)
-		self.UpdateEventStatus(525)
-		self.UpdateEventStatus(526)
-		self.UpdateEventStatus(527)
-		self.UpdateEventStatus(528)
-		self.UpdateEventStatus(529)
-		self.UpdateEventStatus(534)
-		self.UpdateEventStatus(15)
-		self.UpdateEventStatus(70001)
-		self.UpdateEventStatus(70005)
-		self.UpdateEventStatus(22)
-		self.UpdateEventStatus(1020)
-		self.UpdateEventStatus(554)
-		self.UpdateEventStatus(555)
-		self.UpdateEventStatus(556)
-		self.UpdateEventStatus(557)
-		self.UpdateEventStatus(558)
-		self.UpdateEventStatus(559)
-		self.UpdateEventStatus(23)
-		self.UpdateEventStatus(560)
-		self.UpdateEventStatus(24)
-		self.UpdateEventStatus(562)
-		self.UpdateEventStatus(561)
-		self.UpdateEventStatus(563)
-		self.UpdateEventStatus(564)
-		self.UpdateEventStatus(565)
-		self.UpdateEventStatus(566)
-		self.UpdateEventStatus(567)
-		self.UpdateEventStatus(25)
-		self.UpdateEventStatus(568)
-		self.UpdateEventStatus(569)
-		self.UpdateEventStatus(570)
-		self.UpdateEventStatus(571)
-		self.UpdateEventStatus(572)
-		self.UpdateEventStatus(573)
-		self.UpdateEventStatus(574)
-		self.UpdateEventStatus(28)
-		self.UpdateEventStatus(26)
-		self.UpdateEventStatus(27)
-		self.UpdateEventStatus(29)
-		self.UpdateEventStatus(1030)
-		self.UpdateEventStatus(575)
-		self.UpdateEventStatus(576)
-		self.UpdateEventStatus(577)
-		self.UpdateEventStatus(578)
-		self.UpdateEventStatus(579)
-		self.UpdateEventStatus(580)
-		self.UpdateEventStatus(581)
-		self.UpdateEventStatus(30)
-		self.UpdateEventStatus(31)
-		self.UpdateEventStatus(1026)
-		self.UpdateEventStatus(1024)
-		self.UpdateEventStatus(582)
-		self.UpdateEventStatus(583)
-		self.UpdateEventStatus(584)
-		self.UpdateEventStatus(585)
-		self.UpdateEventStatus(586)
-		self.UpdateEventStatus(587)
-		self.UpdateEventStatus(588)
-		self.UpdateEventStatus(32)
-		self.UpdateEventStatus(60006)
-		self.UpdateEventStatus(60025)
-		self.UpdateEventStatus(33)
-		self.UpdateEventStatus(1033)
-		self.UpdateEventStatus(10017)
-		self.UpdateEventStatus(589)
-		self.UpdateEventStatus(590)
-		self.UpdateEventStatus(591)
-		self.UpdateEventStatus(592)
-		self.UpdateEventStatus(593)
-		self.UpdateEventStatus(594)
-		self.UpdateEventStatus(595)
-		self.UpdateEventStatus(34)
-		self.UpdateEventStatus(34)
-		self.UpdateEventStatus(35)
-		self.UpdateEventStatus(36)
-		self.UpdateEventStatus(50038)
-		self.UpdateEventStatus(10019)
-		self.UpdateEventStatus(50015)
-
 	def getArenaWins(self):
 		self.log('%s arena wins'%(self.user['pvp_info']['arena_win']))
 			
@@ -827,115 +699,141 @@ class API(object):
 								continue
 							if self.UpgradeRune(unit['runes'][rune]['rune_id'],upgrade_curr):
 								upgrade_curr+=1
-		
-	def testLogin1(self):
-		self.getServerStatus()
-		self.getVersionInfo()
-		self.CheckLoginBlock()
-		self.GuestLogin()
-		self.GetDailyQuests()
-		self.GetDailyQuests()
-		self.GetMiscReward()
-		self.GetMailList()
-		self.GetArenaLog()
-		self.ReceiveDailyRewardSpecial()
-		self.receiveDailyRewardInactive()
-		self.GetCostumeCollectionList()
-		self.CheckDarkPortalStatus()
-		self.GetFriendRequest()
-		self.GetRTPvPInfo_v3()
-		self.getUnitUpgradeRewardInfo()
-		self.GetChatServerInfo()
-		self.getRtpvpRejoinInfo()
-		self.GetEventTimeTable()
-		self.GetNoticeDungeon()
-		self.GetNoticeChat()
-		self.CheckDailyReward()
 
-	def completeTutorial(self):
+	def completeTutorial(self,candidate_uid=0):
 		if hasattr(self,'user'):
 			if self.user['wizard_info']['wizard_mana']<>13000:
 				return
-		self.getServerStatus()
-		self.getVersionInfo()
-		self.CheckLoginBlock()
-		self.login()#1
-		self.GetDailyQuests()#2
-		self.GetMiscReward()#3
-		self.GetMailList()#4
-		self.GetArenaLog()#5
-		self.ReceiveDailyRewardSpecial()#6
-		self.GetFriendRequest()#7
-		self.GetChatServerInfo()#8
-		self.getRtpvpRejoinInfo()#9
-		self.SetWizardName((Tools().rndHex(9)))#10
-		self.UpdateEventStatus(1500)#11
-		self.GetEventTimeTable()#12
-		self.GetNoticeDungeon()#13
-		self.GetNoticeChat()#14
-		for building in self.user['building_list']:
-			if 'harvest_max' in building:
-				building_id=building['building_id']
-		self.Harvest(building_id)#15
-		self.UpdateEventStatus(60021)#16
-		self.TriggerShopItem(20)#17
-		self.UpdateEventStatus(1085)#18
-		for building in self.user['building_list']:
-			if building['building_master_id'] ==2:
-				building_id=building['building_id']
-		second_unit=self.SummonUnit(building_id,1,[{"island_id":1,"pos_x":7,"pos_y":7,"unit_master_id":10602}])#19
-		second_unit=second_unit['unit_list'][0]['unit_id']
-		self.UpdateEventStatus(1501)#20
-		self.UpdateAchievement([{"ach_id":2,"cond_id":2,"current":1}])#21
-		self.UpdateAchievement([{"ach_id":15,"cond_id":2,"current":1}])#22
-		defense_unit_list=self.SummonUnit(building_id,2,[{"island_id":1,"pos_x":27,"pos_y":18,"unit_master_id":10101}])#23
-		self.UpdateAchievement([{"ach_id":2,"cond_id":1,"current":1},{"ach_id":15,"cond_id":1,"current":1},{"ach_id":33,"cond_id":1,"current":1}])#24
-		self.UpdateDailyQuest([{"quest_id":3,"progressed":1}])#25
-		self.UpdateEventStatus(1502)#26
-		unit_id_list=[]
+		self.login()
+		self.GetDailyQuests()
+		self.GetMiscReward()
+		self.ReceiveDailyRewardSpecial()
+		self.GetArenaLog()
+		self.GetContentsUpdateNotice(lang='en')
+		self.getUnitStorageList()
+		self.getUpdatedDataBeforeWebEvent()
+		self.GetMailList()
+		self.GetFriendRequest()
+		self.GetChatServerInfo()
+		self.GetRtpvpQuests()
+		self.getRtpvpRejoinInfo()
+		self.WriteClientLog(logdata={'battle': 0, 'type': 'prequel', 'message': 'start', 'data': ''})
+		self.WriteClientLog(logdata={'battle': 17, 'type': 'prequel', 'message': 'finish', 'data': ''})
+		self.WriteClientLog(logdata={'battle': 17, 'type': 'intro', 'message': 'start', 'data': ''})
+		self.WriteClientLog(logdata={'battle': 17, 'type': 'intro', 'message': 'finish', 'data': ''})
+		self.SetWizardName(wizard_name=Tools().rndHex(9))
+		self.UpdateEventStatus(event_id=1500)
+		self.GetEventTimeTable(lang=1)
+		self.getBattleOptionList()
+		self.receiveDailyRewardNewUser()
+		building_id=[x['building_id'] for x in self.user['building_list'] if 'harvest_max' in x][0]
+		self.Harvest(building_id=building_id)
+		self.UpdateEventStatus(event_id=1085)
+		self.TriggerShopItem(trigger_id=20)
+		self.UpdateEventStatus(event_id=60021)
+		self.TriggerShopItem(trigger_id=364)
+		self.UpdateEventStatus(event_id=60070)
+		building_id=[x['building_id'] for x in self.user['building_list'] if x['building_master_id'] ==2][0]
+		sac_unit=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 10, 'pos_y': 4, 'unit_master_id': 10602}],mode=1,building_id=building_id)['defense_unit_list'][0]['unit_id']
+		self.GetShopInfo()
+		self.GetShopInfo()
+		self.UpdateEventStatus(event_id=1501)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 2}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 6, 'cond_id': 2}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 15, 'cond_id': 2}])
+		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 55, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 177, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 179, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 178, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 299, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 304, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 300, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 303, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 305, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 424, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 425, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 426, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 497, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 498, 'cond_id': 1}])
+		self.CheckUnitCollection(unit_master_id_list=[1000102, 1000204])
+		defense_unit_list=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 6, 'pos_y': 19, 'unit_master_id': 10101}],mode=2,building_id=building_id)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 1}, {'current': 1, 'ach_id': 6, 'cond_id': 1}, {'current': 1, 'ach_id': 15, 'cond_id': 1}, {'current': 1, 'ach_id': 33, 'cond_id': 1}, {'current': 1, 'ach_id': 478, 'cond_id': 1}])
+		self.UpdateDailyQuest(quests=[{'progressed': 1, 'quest_id': 3}])
+		self.UpdateEventStatus(event_id=1502)
+		self.GetDimensionHoleDungeonClearList()
+		#self.GetWorldBossStatus(worldboss_id=10321)
 		first_unit=defense_unit_list['unit_list'][0]['unit_id']
+		unit_id_list=[]
 		for unit in defense_unit_list['defense_unit_list']:
 			unit_id_list.append({'unit_id':unit['unit_id']})
 		unit_id_list.sort()
-		battle_start=self.BattleScenarioStart(1,1,1,unit_id_list)#27
-		res=self.parseBattleStart(battle_start)
-		self.UpdateDailyQuest([{"quest_id":1,"progressed":3}])#28
-		self.UpdateEventStatus(50001)#29
-		self.UpdateAchievement([{"ach_id":3,"cond_id":1,"current":1}])
-		self.UpdateAchievement([{"ach_id":3,"cond_id":2,"current":1}])
-		self.UpdateEventStatus(50035)
+		self.SetRecentDecks(deck_list=[{'leader_unit_id': defense_unit_list['defense_unit_list'][0]['unit_id'], 'type': 1, 'sub_type': 2, 'unit_id_list': [defense_unit_list['defense_unit_list'][0]['unit_id'], defense_unit_list['defense_unit_list'][1]['unit_id'], 0, 0, 0, 0, 0, 0]}])
+		battle_start=self.BattleScenarioStart(region_id=1,difficulty=1,unit_id_list=unit_id_list,stage_no=1)
+		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		self.UpdateDailyQuest(quests=[{'progressed': 3, 'quest_id': 1}])
+		self.UpdateEventStatus(event_id=50001)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 3, 'cond_id': 1}])
+		self.UpdateEventStatus(event_id=50035)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 3, 'cond_id': 2}])
 		unit_id_list=[]
 		pos=0
 		for unit in defense_unit_list['defense_unit_list']:
 			unit_id_list.append({'unit_id':unit['unit_id'],'pos_id':pos})
 			pos+=1
-		battle_end=self.BattleScenarioResult(res[0],res[1],unit_id_list,{"island_id":1,"pos_x":14,"pos_y":24})
-		self.parseBattleResult(battle_end)
-		self.UpdateEventStatus(1503)
-		self.UpdateEventStatus(1504)
-		self.GetEventTimeTable()#36
-		self.SummonUnit(building_id,1,[{"island_id":1,"pos_x":27,"pos_y":18,"unit_master_id":15203}])#37
-		self.UpdateAchievement([{"ach_id":2,"cond_id":3,"current":1},{"ach_id":15,"cond_id":3,"current":1}])
-		self.UpdateDailyQuest([{"quest_id":3,"progressed":2}])
-		self.UpdateEventStatus(1506)
-		self.UpdateEventStatus(1507)#41
+		self.BattleScenarioResult(unit_id_list=unit_id_list,opp_unit_status_list=opp_unit_status_list,battle_key=battle_key,position={'island_id': 1, 'pos_x': 17, 'pos_y': 27})
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 8, 'cond_id': 1}])
+		self.UpdateEventStatus(event_id=1503)
+		self.UpdateEventStatus(event_id=1504)
+		self.GetEventTimeTable(lang=1)
+		defense_unit_list=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 14, 'pos_y': 11, 'unit_master_id': 15203}],mode=1,building_id=172284009)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 3}, {'current': 1, 'ach_id': 6, 'cond_id': 3}, {'current': 1, 'ach_id': 15, 'cond_id': 3}])
+		self.UpdateDailyQuest(quests=[{'progressed': 2, 'quest_id': 3}])
+		self.UpdateEventStatus(event_id=1506)
+		self.UpdateEventStatus(event_id=1507)
 		for rune in self.user['runes']:
 			rune_id=rune['rune_id']
-		self.EquipRune(rune_id,first_unit)
-		self.UpgradeRune(rune_id,0,0,0)
-		self.UpdateDailyQuest([{"quest_id":4,"progressed":1}])
-		self.BuyShopItem('800020',1,21,20)#45
-		self.UpdateEventStatus(1508)
-		self.UpdateEventStatus(1509)
-		self.SacrificeUnit(second_unit,[{"source_id":0}])
-		self.UpdateAchievement([{"ach_id":13,"cond_id":1,"current":1}])
-		self.UpdateAchievement([{"ach_id":31,"cond_id":1,"current":1}])
-		self.UpdateDailyQuest([{"quest_id":2,"progressed":1}])
-		self.UpdateEventStatus(1510)
-		self.UpdateAchievement([{"ach_id":1,"cond_id":1,"current":1}])
-		self.UpdateEventStatus(2)
-		self.UpdateAchievement([{"ach_id":6,"cond_id":1,"current":1},{"ach_id":6,"cond_id":2,"current":1},{"ach_id":6,"cond_id":3,"current":1}])
-		self.UpdateAchievement([{"ach_id":263,"cond_id":1,"current":1}])
+		self.EquipRune(rune_id=rune_id,unit_id=first_unit)
+		self.UpgradeRune(cash_used=0,rune_id=rune_id,stone_used=0,upgrade_curr=0)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 25, 'cond_id': 1}])
+		self.UpdateDailyQuest(quests=[{'progressed': 1, 'quest_id': 4}])
+		self.BuyShopItem(pos_x=22,pos_y=19,island_id=1,item_id=800020)
+		self.UpdateAchievement(ach_list=[{'current': 5, 'ach_id': 55, 'cond_id': 1}])
+		self.UpdateEventStatus(event_id=1508)
+		self.UpdateEventStatus(event_id=1509)
+		self.SacrificeUnit_V3(target_unit_id=sac_unit,pos_y=4,pos_x=10,island_id=1,building_id=0)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 13, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 6, 'cond_id': 2}, {'current': 1, 'ach_id': 31, 'cond_id': 1}])
+		self.UpdateDailyQuest(quests=[{'progressed': 1, 'quest_id': 2}])
+		self.UpdateEventStatus(event_id=1510)
+		self.UpdateEventStatus(event_id=2)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 263, 'cond_id': 1}])
+		self.UpdateEventStatus(event_id=41)
+		self.UpdateEventStatus(event_id=50020)
+		unit_id_list=[]
+		for unit in defense_unit_list['defense_unit_list']:
+			unit_id_list.append({'unit_id':unit['unit_id']})
+		unit_id_list.sort()
+		battle_start=self.BattleScenarioStart(region_id=1,difficulty=1,unit_id_list=unit_id_list,stage_no=2)
+		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		unit_id_list=[]
+		pos=0
+		for unit in defense_unit_list['defense_unit_list']:
+			unit_id_list.append({'unit_id':unit['unit_id'],'pos_id':pos})
+			pos+=1
+		self.SetRecentDecks(deck_list=[{'leader_unit_id': defense_unit_list['defense_unit_list'][1]['unit_id'], 'type': 1, 'sub_type': 3, 'unit_id_list': [defense_unit_list['defense_unit_list'][0]['unit_id'], defense_unit_list['defense_unit_list'][1]['unit_id'], defense_unit_list['defense_unit_list'][2]['unit_id'], 0, 0, 0, 0, 0]}])
+		self.UpdateDailyQuest(quests=[{'progressed': 6, 'quest_id': 1}])
+		self.BattleScenarioResult(unit_id_list=unit_id_list,opp_unit_status_list=opp_unit_status_list,battle_key=battle_key,position={'island_id': 1, 'pos_x': 14, 'pos_y': 26})
+		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 177, 'cond_id': 1}, {'current': 2, 'ach_id': 178, 'cond_id': 1}, {'current': 2, 'ach_id': 179, 'cond_id': 1}, {'current': 2, 'ach_id': 299, 'cond_id': 1}, {'current': 2, 'ach_id': 300, 'cond_id': 1}, {'current': 2, 'ach_id': 303, 'cond_id': 1}, {'current': 2, 'ach_id': 304, 'cond_id': 1}, {'current': 2, 'ach_id': 305, 'cond_id': 1}, {'current': 2, 'ach_id': 497, 'cond_id': 1}, {'current': 2, 'ach_id': 498, 'cond_id': 1}])
+		self.UpdateEventStatus(event_id=501)
+		self.GetNpcFriendList()
+		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 263, 'cond_id': 1}])
+		self.GetEventTimeTable(lang=1)
+		self.UpdateEventStatus(event_id=50029)
+		if False:
+			self.CheckCandidateUid(candidate_uid=candidate_uid)
+			self.ProcessGuestTransition(candidate_uid=candidate_uid)
+			self.HubUserLogin()
+
 
 if __name__ == "__main__":
 	uid,did=QPYOU().createNew()

@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 from Crypto.Cipher import AES
+from hashlib import md5,sha1
+from random import randint
 from tools import PKCS7Encoder
 import base64
-import zlib
 import time
-from random import randint
-from hashlib import md5,sha1
+import zlib
 
 BS = 16
 pad = lambda s: s + (BS - len(s) % BS) * chr(BS - len(s) % BS)

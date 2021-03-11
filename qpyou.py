@@ -2,6 +2,7 @@
 from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
 from Crypto.PublicKey import RSA
+from crypt import Crypter
 from tools import Tools,PKCS7Encoder
 import StringIO
 import base64
@@ -15,7 +16,6 @@ import re
 import requests
 import socket
 import time
-from crypt import Crypter
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
@@ -99,7 +99,7 @@ class QPYOU(object):
 		return res
 
 	def key(self):
-		return json.loads(self.s.post('https://api.qpyou.cn/guest/key',data='{"hive_country":"RU","device_country":"RU","analytics_id":"","timezone":null,"language":"en","game_language":"en","server_id":""}').content)
+		return json.loads(self.s.post('https://api.qpyou.cn/guest/key',data={"hive_country":self.hive_country,"app_version":"6.2.3.62300","device_country":self.hive_country,"analytics_id":"","cookies":{"advertising_id":"00000000-0000-0000-0000-000000000000","enable_cookie":"no","appid":self.appid},"timezone":None,"language":"en","game_language":"en","server_id":"6"}).content)
 
 	def generate(self,public_key,signature):
 		cipher = Cipher_PKCS1_v1_5.new(RSA.importKey(public_key.rstrip()))
