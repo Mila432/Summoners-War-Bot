@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from collections import OrderedDict
 from crypt import Crypter
 from qpyou import QPYOU
@@ -24,7 +25,8 @@ class API(object):
 		#if 'Admin-PC' == socket.gethostname():
 		#	self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'https://127.0.0.1:8888',})
 		self.game_index=2623
-		self.proto_ver=11690
+		self.proto_ver=11851
+		self.sec_ver='B1aq0bPv'
 		self.app_version='5.3.8'
 		self.c2_api='http://summonerswar-%s.qpyou.cn/api/gateway_c2.php'
 		self.uid=int(uid)
@@ -107,6 +109,7 @@ class API(object):
 		data={}
 		data['game_index']=self.game_index
 		data['proto_ver']=self.proto_ver
+		data['sec_ver']=self.sec_ver
 		data['channel_uid']=0
 		return self.callAPI('http://summonerswar-eu.qpyou.cn/api/server_status_c2.php',data)
 
@@ -114,6 +117,7 @@ class API(object):
 		data={}
 		data['game_index']=self.game_index
 		data['proto_ver']=self.proto_ver
+		data['sec_ver']=self.sec_ver
 		data['channel_uid']=0
 		res= self.callAPI('http://summonerswar-eu.qpyou.cn/api/version_info_c2.php',data)
 		self.parseVersionData(res['version_data'])
@@ -130,7 +134,7 @@ class API(object):
 	
 	def base_data(self,cmd,kind=1):
 		if kind == 1:
-			data=OrderedDict([('command',cmd),('game_index',self.game_index),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid)])
+			data=OrderedDict([('command',cmd),('game_index',self.game_index),('session_key',self.getUID()),('proto_ver',self.proto_ver),('sec_ver',self.sec_ver),('infocsv',self.infocsv),('channel_uid',self.uid)])
 		elif kind ==2:
 			data=OrderedDict([('command',cmd),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.uid),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime())])
 		return data

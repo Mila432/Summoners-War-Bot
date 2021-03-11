@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from api import API
 from qpyou import QPYOU
 from tools import Tools

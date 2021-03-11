@@ -1,7 +1,7 @@
+# -*- coding: utf-8 -*-
 from Crypto.Cipher import AES
 from Crypto.Cipher import PKCS1_v1_5 as Cipher_PKCS1_v1_5
 from Crypto.PublicKey import RSA
-from hashlib import md5
 from tools import Tools,PKCS7Encoder
 import StringIO
 import base64
@@ -14,9 +14,7 @@ import random
 import re
 import requests
 import socket
-import sys
 import time
-import zlib
 from crypt import Crypter
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
@@ -60,7 +58,7 @@ class Activeuser(object):
 		return self.getmd5(s)[:16]
 
 	def getmd5(self,s):
-		return md5(s).hexdigest()
+		return hashlib.md5(s).hexdigest()
 
 class QPYOU(object):
 	def __init__(self,did=None):

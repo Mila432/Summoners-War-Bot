@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 from Crypto.Cipher import AES
 from tools import PKCS7Encoder
 import base64
@@ -94,3 +95,8 @@ class Crypter(object):
 
 	def encrypt_request(self,msg, version = 1):
 		return base64.b64encode(self._encrypt(msg, version))
+		
+if __name__ == "__main__":
+	c=Crypter()
+	c._decrypt('\x00'*16,1)
+	c._decrypt('\x00'*16,2)
