@@ -95,7 +95,11 @@ class Crypter(object):
 
 	def encrypt_request(self,msg, version = 1):
 		return base64.b64encode(self._encrypt(msg, version))
-		
+
+	def decrypt_dat_file(self,file):
+		with open(file,'rb') as f:
+			return self.decrypt_response(f.read(), 2)#.strip('\0')
+
 if __name__ == "__main__":
 	c=Crypter()
 	c._decrypt('\x00'*16,1)
