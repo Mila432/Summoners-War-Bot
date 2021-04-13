@@ -27,13 +27,13 @@ class API(object):
 		self.s=requests.session()
 		self.s.verify=False
 		self.s.timeout=4
-		self.s.headers.update({'User-Agent':'Summoners%20War/5.3.8.53800 CFNetwork/1121.2.2 Darwin/19.3.0'})
+		self.s.headers.update({'User-Agent':'Summoners%20War/6.2.7.62701 CFNetwork/1220.1 Darwin/20.3.0'})
 		#if 'Admin-PC' == socket.gethostname():
 		#self.s.proxies.update({'http': 'http://127.0.0.1:8888','https': 'http://127.0.0.1:8888',})
 		self.game_index=2623
-		self.proto_ver=11851
-		self.sec_ver='B1aq0bPv'
-		self.app_version='6.2.3'
+		self.proto_ver=11880
+		self.sec_ver='U2Se0nMz'
+		self.app_version='6.2.7'
 		self.c2_api='https://summonerswar-%s.qpyou.cn/api/gateway_c2.php'
 		if uid:	self.uid=int(uid)
 		if did:	self.did=int(did)
@@ -113,7 +113,7 @@ class API(object):
 			ts=int(time.time())
 			#try:
 			if True:
-				res=self.s.post(path,data,headers={'SmonTmVal':str(old_data['ts_val']) if 'ts_val' in old_data else str(self.crypter.GetPlayerServerConnectElapsedTime(ts)),'SmonChecker':self.crypter.getSmonChecker(data,ts)})
+				res=self.s.post(path,data,headers={} if 'server' in path or 'version' in path else {'SmonTmVal':str(old_data['ts_val']) if 'ts_val' in old_data else str(self.crypter.GetPlayerServerConnectElapsedTime(ts)),'SmonChecker':self.crypter.getSmonChecker(data,ts)})
 			#except KeyboardInterrupt:
 			#	return None
 			#except:
@@ -145,7 +145,7 @@ class API(object):
 		data['proto_ver']=self.proto_ver
 		data['sec_ver']=self.sec_ver
 		data['channel_uid']=0
-		return self.callAPI('https://summonerswar-eu.qpyou.cn/api/server_status_c2.php',data)
+		return self.callAPI('https://summonerswar-eu-lb.qpyou.cn/api/server_status_c2.php',data)
 
 	def getVersionInfo(self):
 		data={}
@@ -153,7 +153,7 @@ class API(object):
 		data['proto_ver']=self.proto_ver
 		data['sec_ver']=self.sec_ver
 		data['channel_uid']=0
-		res= self.callAPI('https://summonerswar-eu.qpyou.cn/api/version_info_c2.php',data)
+		res= self.callAPI('https://summonerswar-eu-lb.qpyou.cn/api/version_info_c2.php',data)
 		self.parseVersionData(res['version_data'])
 		return res
 
@@ -273,12 +273,24 @@ class API(object):
 		data=self.base_data('GetNpcFriendList',2)
 		return self.callAPI(self.c2_api,data)
 
+	def getBlockUserList(self):
+		data=self.base_data('getBlockUserList',2)
+		return self.callAPI(self.c2_api,data)
+
 	def GetWizardInfo(self):
 		data=self.base_data('GetWizardInfo',2)
 		return self.callAPI(self.c2_api,data)
 
 	def CheckDailyReward(self):
 		data=self.base_data('CheckDailyReward',2)
+		return self.callAPI(self.c2_api,data)
+
+	def getSummonSelectedPool(self):
+		data=self.base_data('getSummonSelectedPool',2)
+		return self.callAPI(self.c2_api,data)
+
+	def GetUnitCollection(self):
+		data=self.base_data('GetUnitCollection',2)
 		return self.callAPI(self.c2_api,data)
 
 	def gettrialtowerupdateremained(self):
@@ -309,8 +321,24 @@ class API(object):
 		data=self.base_data('GetFriendRequestSend',2)
 		return self.callAPI(self.c2_api,data)
 
+	def getShopEventFreeReward(self):
+		data=self.base_data('getShopEventFreeReward',2)
+		return self.callAPI(self.c2_api,data)
+
+	def receiveShopEventFreeReward(self):
+		data=self.base_data('receiveShopEventFreeReward',2)
+		return self.callAPI(self.c2_api,data)
+
 	def SendDailyGift(self,friend_list):
 		data=OrderedDict([('command','SendDailyGift'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('friend_list',friend_list)])
+		return self.callAPI(self.c2_api,data)
+
+	def updateSummonSelectedPool(self,unit_master_id_list):
+		data=OrderedDict([('command','updateSummonSelectedPool'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('summon_type',49),('unit_master_id_list',unit_master_id_list)])
+		return self.callAPI(self.c2_api,data)
+
+	def UpdateAlive(self,latency,battle):
+		data=OrderedDict([('command','UpdateAlive'),('wizard_id',self.wizard_id),('session_key',self.getUID()),('proto_ver',self.proto_ver),('infocsv',self.infocsv),('channel_uid',self.uid),('ts_val',self.crypter.GetPlayerServerConnectElapsedTime()),('latency',0),('battle',1)])
 		return self.callAPI(self.c2_api,data)
 
 	def AddFriendRequestByUid(self,uid):
@@ -985,7 +1013,7 @@ class API(object):
 
 	def getBuilding(self,i):
 		for x in self.user['building_list']:
-			if x['building_master_id'] ==i:	return x
+			if x['building_master_id'] ==i:	return x['building_id']
 		return None
 
 	def dowish(self):
@@ -1021,34 +1049,38 @@ class API(object):
 		self.login()
 		self.GetDailyQuests()
 		self.GetMiscReward()
-		self.ReceiveDailyRewardSpecial()
 		self.GetArenaLog()
-		self.GetContentsUpdateNotice(lang='en')
+		self.GetContentsUpdateNotice()
 		self.getUnitStorageList()
 		self.getUpdatedDataBeforeWebEvent()
+		self.ReceiveDailyRewardSpecial()
+		self.getBlockUserList()
 		self.GetMailList()
 		self.GetFriendRequest()
-		self.GetChatServerInfo()
 		self.GetRtpvpQuests()
+		self.GetChatServerInfo()
 		self.getRtpvpRejoinInfo()
 		self.WriteClientLog(logdata={'battle': 0, 'type': 'prequel', 'message': 'start', 'data': ''})
+		self.UpdateAlive(latency=0,battle=17)
+		self.UpdateAlive(latency=405,battle=17)
+		self.UpdateAlive(latency=736,battle=17)
+		self.UpdateAlive(latency=535,battle=17)
 		self.WriteClientLog(logdata={'battle': 17, 'type': 'prequel', 'message': 'finish', 'data': ''})
 		self.WriteClientLog(logdata={'battle': 17, 'type': 'intro', 'message': 'start', 'data': ''})
 		self.WriteClientLog(logdata={'battle': 17, 'type': 'intro', 'message': 'finish', 'data': ''})
 		self.SetWizardName(wizard_name=Tools().rndUser())
 		self.UpdateEventStatus(event_id=1500)
-		self.GetEventTimeTable(lang=1)
+		self.GetEventTimeTable()
 		self.getBattleOptionList()
+		self.UpdateAlive(latency=537,battle=17)
 		self.receiveDailyRewardNewUser()
-		building_id=[x['building_id'] for x in self.user['building_list'] if 'harvest_max' in x][0]
-		self.Harvest(building_id=building_id)
+		self.Harvest(building_id=self.getBuilding(3))
+		self.UpdateEventStatus(event_id=60021)
+		self.UpdateEventStatus(event_id=60070)
 		self.UpdateEventStatus(event_id=1085)
 		self.TriggerShopItem(trigger_id=20)
-		self.UpdateEventStatus(event_id=60021)
 		self.TriggerShopItem(trigger_id=364)
-		self.UpdateEventStatus(event_id=60070)
-		sac_unit=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 10, 'pos_y': 4, 'unit_master_id': 10602}],mode=1,building_id=self.getBuilding(2))['defense_unit_list'][0]['unit_id']
-		self.GetShopInfo()
+		sac_unit=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 30, 'pos_y': 23, 'unit_master_id': 10602}],mode=1,building_id=self.getBuilding(2))['defense_unit_list'][0]['unit_id']
 		self.GetShopInfo()
 		self.UpdateEventStatus(event_id=1501)
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 2}])
@@ -1057,11 +1089,11 @@ class API(object):
 		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 55, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 177, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 179, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 300, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 178, 'cond_id': 1}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 303, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 299, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 304, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 300, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 303, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 305, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 424, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 425, 'cond_id': 1}])
@@ -1069,55 +1101,51 @@ class API(object):
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 497, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 498, 'cond_id': 1}])
 		self.CheckUnitCollection(unit_master_id_list=[1000102, 1000204])
-		defense_unit_list=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 6, 'pos_y': 19, 'unit_master_id': 10101}],mode=2,building_id=self.getBuilding(2))
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 1}, {'current': 1, 'ach_id': 6, 'cond_id': 1}, {'current': 1, 'ach_id': 15, 'cond_id': 1}, {'current': 1, 'ach_id': 33, 'cond_id': 1}, {'current': 1, 'ach_id': 478, 'cond_id': 1}])
+		defense_unit_list=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 22, 'pos_y': 18, 'unit_master_id': 10101}],mode=2,building_id=self.getBuilding(2))
 		self.UpdateDailyQuest(quests=[{'progressed': 1, 'quest_id': 3}])
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 1}, {'current': 1, 'ach_id': 6, 'cond_id': 1}, {'current': 1, 'ach_id': 15, 'cond_id': 1}, {'current': 1, 'ach_id': 33, 'cond_id': 1}, {'current': 1, 'ach_id': 478, 'cond_id': 1}])
 		self.UpdateEventStatus(event_id=1502)
 		self.GetDimensionHoleDungeonClearList()
-		#self.GetWorldBossStatus(worldboss_id=10321)
-		first_unit=defense_unit_list['unit_list'][0]['unit_id']
+		self.GetWorldBossStatus(worldboss_id=10327)
 		unit_id_list=[]
 		for unit in defense_unit_list['defense_unit_list']:
 			unit_id_list.append({'unit_id':unit['unit_id']})
 		unit_id_list.sort()
-		self.SetRecentDecks(deck_list=[{'leader_unit_id': defense_unit_list['defense_unit_list'][0]['unit_id'], 'type': 1, 'sub_type': 2, 'unit_id_list': [defense_unit_list['defense_unit_list'][0]['unit_id'], defense_unit_list['defense_unit_list'][1]['unit_id'], 0, 0, 0, 0, 0, 0]}])
-		battle_start=self.BattleScenarioStart(region_id=1,difficulty=1,unit_id_list=unit_id_list,stage_no=1)
+		battle_start=self.BattleScenarioStart(region_id=1,difficulty=1,stage_no=1,unit_id_list=unit_id_list)
 		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
+		self.SetRecentDecks(deck_list=[{'leader_unit_id': defense_unit_list['defense_unit_list'][0]['unit_id'], 'type': 1, 'sub_type': 2, 'unit_id_list': [defense_unit_list['defense_unit_list'][0]['unit_id'], defense_unit_list['defense_unit_list'][1]['unit_id'], 0, 0, 0, 0, 0, 0]}])
 		self.UpdateDailyQuest(quests=[{'progressed': 3, 'quest_id': 1}])
 		self.UpdateEventStatus(event_id=50001)
+		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 3, 'cond_id': 2}])
+		self.UpdateAlive(latency=486,battle=1)
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 3, 'cond_id': 1}])
 		self.UpdateEventStatus(event_id=50035)
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 3, 'cond_id': 2}])
-		unit_id_list=[]
-		pos=0
-		for unit in defense_unit_list['defense_unit_list']:
-			unit_id_list.append({'unit_id':unit['unit_id'],'pos_id':pos})
-			pos+=1
-		self.BattleScenarioResult(unit_id_list=unit_id_list,opp_unit_status_list=opp_unit_status_list,battle_key=battle_key,position={'island_id': 1, 'pos_x': 17, 'pos_y': 27})
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 8, 'cond_id': 1}])
+		self.BattleScenarioResult(opp_unit_status_list=[{'unit_id': 1, 'result': 2}, {'unit_id': 2, 'result': 2}],battle_key=battle_key,position={'island_id': 1, 'pos_x': 17, 'pos_y': 20},unit_id_list=unit_id_list)
 		self.UpdateEventStatus(event_id=1503)
 		self.UpdateEventStatus(event_id=1504)
-		self.GetEventTimeTable(lang=1)
-		defense_unit_list=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 14, 'pos_y': 11, 'unit_master_id': 15203}],mode=1,building_id=self.getBuilding(2))
+		defense_unit_list=self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 29, 'pos_y': 14, 'unit_master_id': 15203}],mode=1,building_id=self.getBuilding(2))
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 2, 'cond_id': 3}, {'current': 1, 'ach_id': 6, 'cond_id': 3}, {'current': 1, 'ach_id': 15, 'cond_id': 3}])
 		self.UpdateDailyQuest(quests=[{'progressed': 2, 'quest_id': 3}])
 		self.UpdateEventStatus(event_id=1506)
 		self.UpdateEventStatus(event_id=1507)
 		for rune in self.user['runes']:
 			rune_id=rune['rune_id']
-		self.EquipRune(rune_id=rune_id,unit_id=first_unit)
-		self.UpgradeRune(cash_used=0,rune_id=rune_id,stone_used=0,upgrade_curr=0)
+		self.EquipRune(rune_id=rune_id,unit_id=defense_unit_list['unit_list'][0]['unit_id'])
+		self.UpgradeRune(rune_id=rune_id,stone_used=0,upgrade_curr=0)
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 25, 'cond_id': 1}])
 		self.UpdateDailyQuest(quests=[{'progressed': 1, 'quest_id': 4}])
+		self.UpdateAlive(latency=650,battle=1)
 		self.BuyShopItem(pos_x=22,pos_y=19,island_id=1,item_id=800020)
 		self.UpdateAchievement(ach_list=[{'current': 5, 'ach_id': 55, 'cond_id': 1}])
 		self.UpdateEventStatus(event_id=1508)
 		self.UpdateEventStatus(event_id=1509)
-		self.SacrificeUnit_V3(target_unit_id=sac_unit,pos_y=4,pos_x=10,island_id=1,building_id=0)
+		self.SacrificeUnit_V3(target_unit_id=sac_unit,pos_y=23,pos_x=30,island_id=1,source_unit_list=[{'unit_id': 0}],building_id=0)
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 13, 'cond_id': 1}])
 		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 6, 'cond_id': 2}, {'current': 1, 'ach_id': 31, 'cond_id': 1}])
 		self.UpdateDailyQuest(quests=[{'progressed': 1, 'quest_id': 2}])
 		self.UpdateEventStatus(event_id=1510)
+		self.UpdateAlive(latency=741,battle=1)
 		self.UpdateEventStatus(event_id=2)
 		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 263, 'cond_id': 1}])
 		self.UpdateEventStatus(event_id=41)
@@ -1126,84 +1154,62 @@ class API(object):
 		for unit in defense_unit_list['defense_unit_list']:
 			unit_id_list.append({'unit_id':unit['unit_id']})
 		unit_id_list.sort()
-		battle_start=self.BattleScenarioStart(region_id=1,difficulty=1,unit_id_list=unit_id_list,stage_no=2)
+		battle_start=self.BattleScenarioStart(region_id=1,difficulty=1,stage_no=2,unit_id_list=unit_id_list)
 		battle_key,opp_unit_status_list=self.parseBattleStart(battle_start)
-		unit_id_list=[]
-		pos=0
-		for unit in defense_unit_list['defense_unit_list']:
-			unit_id_list.append({'unit_id':unit['unit_id'],'pos_id':pos})
-			pos+=1
-		self.SetRecentDecks(deck_list=[{'leader_unit_id': defense_unit_list['defense_unit_list'][1]['unit_id'], 'type': 1, 'sub_type': 3, 'unit_id_list': [defense_unit_list['defense_unit_list'][0]['unit_id'], defense_unit_list['defense_unit_list'][1]['unit_id'], defense_unit_list['defense_unit_list'][2]['unit_id'], 0, 0, 0, 0, 0]}])
+		self.SetRecentDecks(deck_list=[{'leader_unit_id': defense_unit_list['defense_unit_list'][0]['unit_id'], 'type': 1, 'sub_type': 3, 'unit_id_list': [defense_unit_list['defense_unit_list'][0]['unit_id'], defense_unit_list['defense_unit_list'][1]['unit_id'], defense_unit_list['defense_unit_list'][2]['unit_id'], 0, 0, 0, 0, 0]}])
 		self.UpdateDailyQuest(quests=[{'progressed': 6, 'quest_id': 1}])
-		self.BattleScenarioResult(unit_id_list=unit_id_list,opp_unit_status_list=opp_unit_status_list,battle_key=battle_key,position={'island_id': 1, 'pos_x': 14, 'pos_y': 26})
+		self.BattleScenarioResult(opp_unit_status_list=[{'unit_id': 1, 'result': 2}, {'unit_id': 2, 'result': 2}, {'unit_id': 5, 'result': 2}, {'unit_id': 3, 'result': 2}, {'unit_id': 4, 'result': 2}],battle_key=battle_key,position={'island_id': 1, 'pos_x': 18, 'pos_y': 20},unit_id_list=unit_id_list)
 		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 177, 'cond_id': 1}, {'current': 2, 'ach_id': 178, 'cond_id': 1}, {'current': 2, 'ach_id': 179, 'cond_id': 1}, {'current': 2, 'ach_id': 299, 'cond_id': 1}, {'current': 2, 'ach_id': 300, 'cond_id': 1}, {'current': 2, 'ach_id': 303, 'cond_id': 1}, {'current': 2, 'ach_id': 304, 'cond_id': 1}, {'current': 2, 'ach_id': 305, 'cond_id': 1}, {'current': 2, 'ach_id': 497, 'cond_id': 1}, {'current': 2, 'ach_id': 498, 'cond_id': 1}])
+		self.GetNpcFriendList()
 		self.UpdateEventStatus(event_id=501)
-		self.GetNpcFriendList()
 		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 263, 'cond_id': 1}])
-		self.GetEventTimeTable(lang=1)
 		self.UpdateEventStatus(event_id=50029)
-		self.refreshtoken()
-		#part2
-		self.doMission(region_id=1,difficulty=1,stage_no=3)
-		self.UpdateDailyQuest(quests=[{'progressed': 9, 'quest_id': 1}])
-		self.UpdateEventStatus(event_id=502)
-		self.UpdateAchievement(ach_list=[{'current': 3, 'ach_id': 263, 'cond_id': 1}])
-		self.UpdateEventStatus(event_id=50065)
-		self.doMission(region_id=1,difficulty=1,stage_no=4)
-		self.UpdateDailyQuest(quests=[{'progressed': 12, 'quest_id': 1}])
-		self.GetNpcFriendList()
-		self.UpdateEventStatus(event_id=503)
-		self.UpdateAchievement(ach_list=[{'current': 3, 'ach_id': 177, 'cond_id': 1}, {'current': 3, 'ach_id': 178, 'cond_id': 1}, {'current': 3, 'ach_id': 179, 'cond_id': 1}, {'current': 3, 'ach_id': 299, 'cond_id': 1}, {'current': 3, 'ach_id': 300, 'cond_id': 1}, {'current': 3, 'ach_id': 303, 'cond_id': 1}, {'current': 3, 'ach_id': 304, 'cond_id': 1}, {'current': 3, 'ach_id': 305, 'cond_id': 1}, {'current': 3, 'ach_id': 497, 'cond_id': 1}, {'current': 3, 'ach_id': 498, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 263, 'cond_id': 1}])
-		self.doMission(region_id=1,difficulty=1,stage_no=5)
-		self.UpdateDailyQuest(quests=[{'progressed': 15, 'quest_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 3, 'cond_id': 3}])
-		self.UpdateAchievement(ach_list=[{'current': 5, 'ach_id': 263, 'cond_id': 1}])
-		self.UpdateEventStatus(event_id=504)
-		self.doMission(region_id=1,difficulty=1,stage_no=6)
-		self.UpdateDailyQuest(quests=[{'progressed': 18, 'quest_id': 1}])
-		self.UpdateEventStatus(event_id=530)
-		self.UpdateAchievement(ach_list=[{'current': 6, 'ach_id': 263, 'cond_id': 1}])
-		self.doMission(region_id=1,difficulty=1,stage_no=7)
-		self.UpdateDailyQuest(quests=[{'progressed': 20, 'quest_id': 1}])
-		self.UpdateEventStatus(event_id=50022)
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 88, 'cond_id': 1}])
-		self.GetNpcFriendList()
-		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 177, 'cond_id': 1}, {'current': 4, 'ach_id': 178, 'cond_id': 1}, {'current': 4, 'ach_id': 179, 'cond_id': 1}, {'current': 4, 'ach_id': 299, 'cond_id': 1}, {'current': 4, 'ach_id': 300, 'cond_id': 1}, {'current': 4, 'ach_id': 303, 'cond_id': 1}, {'current': 4, 'ach_id': 304, 'cond_id': 1}, {'current': 4, 'ach_id': 305, 'cond_id': 1}, {'current': 4, 'ach_id': 497, 'cond_id': 1}, {'current': 4, 'ach_id': 498, 'cond_id': 1}])
-		self.UpdateEventStatus(event_id=505)
-		self.UpdateAchievement(ach_list=[{'current': 7, 'ach_id': 263, 'cond_id': 1}, {'current': 1, 'ach_id': 20001, 'cond_id': 1}])
-		self.ClaimAchievementReward(ach_id=263)
-		self.UpdateEventStatus(event_id=3)
-		self.GetEventTimeTable()
-		self.UpdateEventStatus(event_id=5)
-		self.UpdateEventStatus(event_id=60018)
-		self.TriggerShopItem(trigger_id=251)
-		self.GetShopInfo()
-		self.UpdateEventStatus(event_id=11003)
-		self.ClaimAchievementReward(activate_quest_list=[{'quest_id': 20002}],ach_id=20001)
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 21001, 'cond_id': 1}])
+		self.UpdateAlive(latency=550,battle=1)
+		self.gettrialtowerupdateremained()
 		self.getAllMailF()
-
-		while(1):
-			if not self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 0, 'pos_y': 16, 'unit_master_id': 0}],mode=2,building_id=self.getBuilding(2)):	break
-
-		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 6, 'cond_id': 1}, {'current': 2, 'ach_id': 478, 'cond_id': 1}, {'current': 2, 'ach_id': 20002, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 6, 'cond_id': 3}, {'current': 1, 'ach_id': 33, 'cond_id': 3}, {'current': 1, 'ach_id': 476, 'cond_id': 1}, {'current': 3, 'ach_id': 20002, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 33, 'cond_id': 2}, {'current': 1, 'ach_id': 477, 'cond_id': 1}, {'current': 4, 'ach_id': 20002, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 477, 'cond_id': 1}, {'current': 5, 'ach_id': 20002, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 3, 'ach_id': 477, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 3, 'ach_id': 478, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 477, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 476, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 5, 'ach_id': 477, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 3, 'ach_id': 476, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 476, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 6, 'ach_id': 477, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 7, 'ach_id': 477, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 8, 'ach_id': 477, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 5, 'ach_id': 476, 'cond_id': 1}])
-		self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 478, 'cond_id': 1}])
-
+		self.getSummonSelectedPool()
+		self.GetUnitCollection()
+		self.UpdateAlive(latency=433,battle=1)
+		if False:
+			self.updateSummonSelectedPool(unit_master_id_list=[13802, 14402, 14502, 14602, 15702, 16102, 16602, 11202, 11602, 11802, 11902, 13302, 13402, 13502, 10102, 10502, 11002, 11102, 11402, 11302, 11502])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 9, 'pos_y': 23, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateDailyQuest(quests=[{'progressed': 3, 'quest_id': 3}])
+			self.UpdateAchievement(ach_list=[{'current': 1, 'ach_id': 33, 'cond_id': 2}, {'current': 1, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 30, 'pos_y': 18, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 2, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 0, 'pos_y': 18, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 3, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 20, 'pos_y': 5, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 4, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 14, 'pos_y': 28, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 5, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 12, 'pos_y': 24, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 6, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 13, 'pos_y': 29, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 7, 'ach_id': 477, 'cond_id': 1}])
+			self.GetWizardInfo()
+			self.UpdateAlive(latency=524,battle=1)
+			self.getShopEventFreeReward()
+			self.receiveShopEventFreeReward()
+			self.getAllMailF()
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 26, 'pos_y': 17, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 8, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 15, 'pos_y': 9, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 9, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 29, 'pos_y': 26, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 10, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 29, 'pos_y': 6, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 11, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 13, 'pos_y': 14, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 12, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 31, 'pos_y': 11, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 13, 'ach_id': 477, 'cond_id': 1}])
+			self.SummonUnit(pos_arr=[{'island_id': 1, 'pos_x': 10, 'pos_y': 17, 'unit_master_id': 0}],mode=49,building_id=self.getBuilding(2))
+			self.UpdateAchievement(ach_list=[{'current': 14, 'ach_id': 477, 'cond_id': 1}])
+		self.getShopEventFreeReward()
+		self.receiveShopEventFreeReward()
+		self.getAllMail()
+		self.five=1
 		if q is not None:
 			candidate_uid=int(q.uid)
 			self.CheckCandidateUid(candidate_uid=candidate_uid)
@@ -1689,7 +1695,7 @@ class API(object):
 
 	def bind(self,q):
 		username=Tools().rndUser().lower()
-		mail='%s@gmail.com'%(username)
+		mail='%s@mustplayit.com'%(username)
 		password=Tools().rndPw(9)
 		print mail,username,password
 		self.id=username
